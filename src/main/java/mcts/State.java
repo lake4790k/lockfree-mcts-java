@@ -2,11 +2,11 @@ package mcts;
 
 import java.util.List;
 
-public interface State<ActionT extends Action> {
+public interface State<Action> {
 
     boolean isTerminal();
 
-    List<ActionT> getAvailableActions();
+    List<Action> getAvailableActions();
 
     int getAgent();
 
@@ -14,7 +14,7 @@ public interface State<ActionT extends Action> {
 
     double getRewardFor(int agent);
 
-    State<ActionT> takeAction(ActionT action);
+    State<Action> takeAction(Action action);
 
     int getWinner();
 

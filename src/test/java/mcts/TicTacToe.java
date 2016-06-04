@@ -13,7 +13,7 @@ public class TicTacToe {
         return new TicTacToeState((byte) dim, (byte) needed);
     }
 
-    public static class TicTacToeAction implements Action {
+    public static class TicTacToeAction {
         private final byte row;
         private final byte col;
 

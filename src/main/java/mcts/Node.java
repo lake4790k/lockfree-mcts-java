@@ -5,21 +5,22 @@ import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
-class Node<ActionT extends Action, StateT extends State<ActionT>> {
+class Node<Action, StateT extends State<Action>> {
     private static final Random random = ThreadLocalRandom.current();
-    private static final double C = Math.sqrt(2);
+    private static final double EXPLORATION_CONSTANT = Math.sqrt(2);
+    private static final double NO_EXPLORATION = 0;
 
-    private final List<Node<ActionT, StateT>> children;
-    private final List<ActionT> untakenActions;
+    private final List<Node<Action, StateT>> children;
+    private final List<Action> untakenActions;
     private final StateT state;
-    private final Node<ActionT, StateT> parent;
-    private final ActionT action;
+    private final Node<Action, StateT> parent;
+    private final Action action;
     private final boolean hasActions;
 
     private int visits;
     private volatile double rewards;
 
-    Node(Node<ActionT, StateT> parent, ActionT action, StateT state) {
+    Node(Node<Action, StateT> parent, Action action, StateT state) {
         this.parent = parent;
         this.action = action;
         this.state = state;
@@ -28,7 +29,7 @@ class Node<ActionT extends Action, StateT extends State<ActionT>> {
         hasActions = !untakenActions.isEmpty();
     }
 
-    ActionT getAction() {
+    Action getAction() {
         return action;
     }
 
@@ -45,16 +46,16 @@ class Node<ActionT extends Action, StateT extends State<ActionT>> {
     }
 
     @SuppressWarnings("unchecked")
-    Node<ActionT, StateT> expand() {
+    Node<Action, StateT> expand() {
         int randomIdx = random.nextInt(untakenActions.size());
-        ActionT untakenAction = untakenActions.remove(randomIdx);
+        Action untakenAction = untakenActions.remove(randomIdx);
         StateT actionState = (StateT) state.takeAction(untakenAction);
-        Node<ActionT, StateT> child = new Node<>(this, untakenAction, actionState);
+        Node<Action, StateT> child = new Node<>(this, untakenAction, actionState);
         children.add(child);
         return child;
     }
 
-    Node<ActionT, StateT> getParent() {
+    Node<Action, StateT> getParent() {
         return parent;
     }
 
@@ -72,22 +73,20 @@ class Node<ActionT extends Action, StateT extends State<ActionT>> {
         return rewards / visits + c * Math.sqrt(Math.log(parent.visits) / visits);
     }
 
-    Node<ActionT, StateT> childToExploit() {
-        // for (Node<ActionT, StateT> child : children)
-        // System.out.println(child.getAction() + " = " + child);
-        return getBestChild(.0);
+    Node<Action, StateT> childToExploit() {
+        return getBestChild(NO_EXPLORATION);
     }
 
-    Node<ActionT, StateT> childToExplore() {
-        return getBestChild(C);
+    Node<Action, StateT> childToExplore() {
+        return getBestChild(EXPLORATION_CONSTANT);
     }
 
-    private Node<ActionT, StateT> getBestChild(double c) {
+    private Node<Action, StateT> getBestChild(double c) {
         assert isExpanded();
         double bestValue = Double.NEGATIVE_INFINITY;
-        Node<ActionT, StateT> best = null;
+        Node<Action, StateT> best = null;
         for (int i = 0; i < children.size(); i++) {
-            Node<ActionT, StateT> child = children.get(i);
+            Node<Action, StateT> child = children.get(i);
             double chidrenValue = child.getUctValue(c);
             if (chidrenValue > bestValue) {
                 best = child;
@@ -103,7 +102,8 @@ class Node<ActionT extends Action, StateT extends State<ActionT>> {
 
     @Override
     public String toString() {
-        return "Node [visits=" + visits + ", rewards=" + rewards + ", v=" + getUctValue(0.) + "]";
+        return "Node [visits=" + visits + ", rewards=" + rewards + ", v="
+            + getUctValue(NO_EXPLORATION) + "]";
     }
 
 }
