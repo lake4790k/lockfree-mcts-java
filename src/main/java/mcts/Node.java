@@ -1,8 +1,8 @@
 package mcts;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReferenceArray;
 
 class Node<Action, StateT extends State<Action>> {
     private static final double EXPLORATION_CONSTANT = Math.sqrt(2);
@@ -10,7 +10,7 @@ class Node<Action, StateT extends State<Action>> {
 
     private final AtomicInteger untakenIndex = new AtomicInteger();
 
-    private final List<Node<Action, StateT>> children;
+    private final AtomicReferenceArray<Node<Action, StateT>> children;
     private final List<Action> untakenActions;
     private final StateT state;
     private final Action action;
@@ -23,14 +23,16 @@ class Node<Action, StateT extends State<Action>> {
         this.parent = parent;
         this.action = action;
         this.state = state;
-        this.children = new ArrayList<>();
         this.untakenActions = state.getAvailableActions();
+        this.children = new AtomicReferenceArray<>(untakenActions.size());
         this.untakenIndex.set(untakenActions.size() - 1);
     }
 
     Node<Action, StateT> findChildFor(Action action) {
-        for (int i = 0; i < children.size(); i++) {
+        for (int i = 0; i < children.length(); i++) {
             Node<Action, StateT> child = children.get(i);
+            if (child == null)
+                continue;
             if (child.action.equals(action))
                 return child;
         }
@@ -55,10 +57,11 @@ class Node<Action, StateT extends State<Action>> {
 
     @SuppressWarnings("unchecked")
     Node<Action, StateT> expand() {
-        Action untakenAction = untakenActions.get(untakenIndex.getAndDecrement());
+        int untakenIdx = untakenIndex.getAndDecrement();
+        Action untakenAction = untakenActions.get(untakenIdx);
         StateT actionState = (StateT) state.takeAction(untakenAction);
         Node<Action, StateT> child = new Node<>(this, untakenAction, actionState);
-        children.add(child);
+        children.set(untakenIdx, child);
         return child;
     }
 
@@ -91,7 +94,7 @@ class Node<Action, StateT extends State<Action>> {
         assert isExpanded();
         double bestValue = Double.NEGATIVE_INFINITY;
         Node<Action, StateT> best = null;
-        for (int i = 0; i < children.size(); i++) {
+        for (int i = 0; i < children.length(); i++) {
             Node<Action, StateT> child = children.get(i);
             double chidrenValue = child.getUctValue(c);
             if (chidrenValue > bestValue) {
