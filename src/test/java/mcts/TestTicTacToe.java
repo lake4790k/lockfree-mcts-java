@@ -4,6 +4,7 @@ import static org.junit.Assert.*;
 
 import java.util.Arrays;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import mcts.TicTacToe.TicTacToeState;
@@ -45,11 +46,11 @@ public class TestTicTacToe {
     }
 
     @Test
+    @Ignore
     public void testSingleVsMultiThreaded10x8() {
         dim = 10;
         needed = 8;
-        // threads1 = Runtime.getRuntime().availableProcessors();
-        threads1 = 2;
+        threads1 = Runtime.getRuntime().availableProcessors();
         maxIterations1 = 1200 / threads1;
         maxIterations2 = 1200;
         System.out.println(threads1 + " x " + maxIterations1 + " vs 1x " + maxIterations2);
@@ -59,17 +60,17 @@ public class TestTicTacToe {
     }
 
     @Test
+    @Ignore
     public void testMultiVsSingleThreaded10x8() {
         dim = 10;
         needed = 8;
-        // threads1 = Runtime.getRuntime().availableProcessors();
-        threads1 = 2;
+        threads1 = Runtime.getRuntime().availableProcessors();
         maxIterations1 = 500;
         maxIterations2 = 500;
         System.out.println(threads1 + " x " + maxIterations1 + " vs 1x " + maxIterations2);
         int[] scores = testScores(10);
         System.out.println(Arrays.toString(scores));
-        assertTrue(scores[1] >= 3);
+        assertTrue(scores[1] > 3);
         assertEquals(0, scores[2]);
     }
 
