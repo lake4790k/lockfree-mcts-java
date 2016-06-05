@@ -5,6 +5,8 @@ General lockfree Monte Carlo Tree Search implementation in Java
 
 ### Results
 
+Work in progress
+
 ### References
 
 [1] [A Lock-free Multithreaded Monte-Carlo Tree Search Algorithm](
