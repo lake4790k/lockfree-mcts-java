@@ -58,6 +58,9 @@ class Node<Action, StateT extends State<Action>> {
     @SuppressWarnings("unchecked")
     Node<Action, StateT> expand() {
         int untakenIdx = untakenIndex.getAndDecrement();
+        if (untakenIdx < 0)
+            return null;
+
         Action untakenAction = untakenActions.get(untakenIdx);
         StateT actionState = (StateT) state.takeAction(untakenAction);
         Node<Action, StateT> child = new Node<>(this, untakenAction, actionState);

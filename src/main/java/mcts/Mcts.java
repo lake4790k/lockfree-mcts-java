@@ -57,7 +57,9 @@ public class Mcts<Action, StateT extends State<Action>> {
         Node<Action, StateT> node = root;
         while (!node.isTerminal()) {
             if (!node.isExpanded()) {
-                return node.expand();
+                Node<Action, StateT> expandedNode = node.expand();
+                if (expandedNode != null)
+                    return expandedNode;
             }
             node = node.childToExplore();
         }
