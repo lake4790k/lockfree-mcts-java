@@ -1,21 +1,36 @@
 package mcts;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class Mcts<Action, StateT extends State<Action>> {
-    private final Random random = ThreadLocalRandom.current();
+    private final ExecutorService executor;
 
     private final long timePerActionMillis;
     private final int maxIterations;
 
     private Node<Action, StateT> root;
     private Action lastAction;
+    private final int threads;
 
-    public Mcts(long timePerActionMillis, int maxIterations) {
+    public Mcts(int threads, long timePerActionMillis, int maxIterations) {
+        this.threads = threads;
         this.timePerActionMillis = timePerActionMillis;
         this.maxIterations = maxIterations;
+        executor = threads > 1
+            ? Executors.newFixedThreadPool(threads)
+            : null;
+    }
+
+    public void stop() {
+        if (executor != null)
+            executor.shutdown();
     }
 
     public void setRoot(Action action, StateT state) {
@@ -31,12 +46,35 @@ public class Mcts<Action, StateT extends State<Action>> {
     }
 
     public void think() {
+        if (threads == 1) {
+            think1();
+            return;
+        }
+
+        Collection<Callable<Void>> tasks = new ArrayList<>();
+
+        for (int i = 0; i < threads; i++)
+            tasks.add(() -> {
+                think1();
+                return null;
+            });
+
+        try {
+            executor.invokeAll(tasks);
+        } catch (InterruptedException e) {
+            throw new IllegalStateException(e);
+        }
+
+    }
+
+    public void think1() {
         long started = System.currentTimeMillis();
         int i = 0;
+        Random random = ThreadLocalRandom.current();
         while (i++ < maxIterations && System.currentTimeMillis() - started < timePerActionMillis
             || !root.isExpanded()) {
 
-            growTree();
+            growTree(random);
         }
     }
 
@@ -47,9 +85,9 @@ public class Mcts<Action, StateT extends State<Action>> {
         return actionNode.getState();
     }
 
-    private void growTree() {
+    private void growTree(Random random) {
         Node<Action, StateT> child = selectOrExpand(root);
-        StateT terminalState = simulate(child);
+        StateT terminalState = simulate(child, random);
         backPropagate(child, terminalState);
     }
 
@@ -67,16 +105,16 @@ public class Mcts<Action, StateT extends State<Action>> {
     }
 
     @SuppressWarnings("unchecked")
-    private StateT simulate(Node<Action, StateT> node) {
+    private StateT simulate(Node<Action, StateT> node, Random random) {
         StateT state = (StateT) node.getState().copy();
         while (!state.isTerminal()) {
-            Action action = randomAction(state);
+            Action action = randomAction(random, state);
             state.applyAction(action);
         }
         return state;
     }
 
-    private Action randomAction(StateT state) {
+    private Action randomAction(Random random, StateT state) {
         List<Action> actions = state.getAvailableActions();
         // TODO select winner action?
         int randomIdx = random.nextInt(actions.size());

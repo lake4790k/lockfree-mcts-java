@@ -9,6 +9,7 @@ class Node<Action, StateT extends State<Action>> {
     private static final double NO_EXPLORATION = 0;
 
     private final AtomicInteger untakenIndex = new AtomicInteger();
+    private final AtomicInteger visits = new AtomicInteger();
 
     private final AtomicReferenceArray<Node<Action, StateT>> children;
     private final List<Action> untakenActions;
@@ -16,7 +17,6 @@ class Node<Action, StateT extends State<Action>> {
     private final Action action;
 
     private volatile Node<Action, StateT> parent;
-    private int visits;
     private volatile double rewards;
 
     Node(Node<Action, StateT> parent, Action action, StateT state) {
@@ -77,12 +77,17 @@ class Node<Action, StateT extends State<Action>> {
     }
 
     void updateRewards(double reward) {
-        visits++;
+        visits.incrementAndGet();
         this.rewards += reward;
     }
 
+    boolean isVisited() {
+        return visits.get() > 0;
+    }
+
     double getUctValue(double c) {
-        return rewards / visits + c * Math.sqrt(Math.log(parent.visits) / visits);
+        int visits1 = visits.get();
+        return rewards / visits1 + c * Math.sqrt(Math.log(parent.visits.get()) / visits1);
     }
 
     Node<Action, StateT> childToExploit() {
@@ -98,7 +103,12 @@ class Node<Action, StateT extends State<Action>> {
         double bestValue = Double.NEGATIVE_INFINITY;
         Node<Action, StateT> best = null;
         for (int i = 0; i < children.length(); i++) {
-            Node<Action, StateT> child = children.get(i);
+            Node<Action, StateT> child = null;
+            while (child == null)
+                child = children.get(i);
+
+            while (!child.isVisited()) {}
+
             double chidrenValue = child.getUctValue(c);
             if (chidrenValue > bestValue) {
                 best = child;
