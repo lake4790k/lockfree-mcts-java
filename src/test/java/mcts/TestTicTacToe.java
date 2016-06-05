@@ -6,7 +6,6 @@ import java.util.Arrays;
 
 import org.junit.Test;
 
-import mcts.TicTacToe.TicTacToeAction;
 import mcts.TicTacToe.TicTacToeState;
 
 public class TestTicTacToe {
@@ -45,7 +44,7 @@ public class TestTicTacToe {
         int[] scores = new int[3];
         for (int i = 0; i < 100; i++) {
             TicTacToeState startState = TicTacToe.start(dim, needed);
-            SelfPlay<TicTacToeAction, TicTacToeState> play = new SelfPlay<TicTacToeAction, TicTacToeState>(
+            SelfPlay<TicTacToe.Action, TicTacToeState> play = new SelfPlay<TicTacToe.Action, TicTacToeState>(
                 startState,
                 timePerActionSec1,
                 timePerActionSec2,

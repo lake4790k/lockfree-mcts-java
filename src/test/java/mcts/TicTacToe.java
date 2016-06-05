@@ -13,11 +13,11 @@ public class TicTacToe {
         return new TicTacToeState((byte) dim, (byte) needed);
     }
 
-    public static class TicTacToeAction {
+    static class Action {
         private final byte row;
         private final byte col;
 
-        TicTacToeAction(byte row, byte col) {
+        Action(byte row, byte col) {
             this.row = row;
             this.col = col;
         }
@@ -26,17 +26,17 @@ public class TicTacToe {
         public String toString() {
             return "[row=" + row + ", col=" + col + "]";
         }
-
     }
 
-    public static class TicTacToeState implements State<TicTacToeAction> {
+    public static class TicTacToeState implements State<Action> {
         private static final byte DRAW = 0;
         private static final byte NOT_OVER_YET = (byte) 99;
 
-        private final byte agent;
+        private byte agent;
         private final byte[][] board;
-        private final byte winner;
         private final byte needed;
+
+        private byte winner;
         private int round;
 
         public TicTacToeState(byte dims, byte needed) {
@@ -46,7 +46,19 @@ public class TicTacToe {
             this.winner = NOT_OVER_YET;
         }
 
-        public TicTacToeState(TicTacToeState o, TicTacToeAction action) {
+        public TicTacToeState(TicTacToeState o) {
+            agent = o.agent;
+            int dim = o.board.length;
+            board = new byte[dim][dim];
+            for (int r = 0; r < dim; r++) {
+                board[r] = o.board[r].clone();
+            }
+            needed = o.needed;
+            round = o.round;
+            winner = o.winner;
+        }
+
+        public TicTacToeState(TicTacToeState o, Action action) {
             agent = (byte) (3 - o.agent);
             int dim = o.board.length;
             board = new byte[dim][dim];
@@ -59,18 +71,23 @@ public class TicTacToe {
         }
 
         @Override
+        public State<Action> copy() {
+            return new TicTacToeState(this);
+        }
+
+        @Override
         public boolean isTerminal() {
             return winner < NOT_OVER_YET;
         }
 
         @Override
-        public List<TicTacToeAction> getAvailableActions() {
-            List<TicTacToeAction> actions = new ArrayList<>();
+        public List<Action> getAvailableActions() {
+            List<Action> actions = new ArrayList<>();
             int dim = board.length;
             for (byte r = 0; r < dim; r++) {
                 for (byte c = 0; c < dim; c++) {
                     if (board[r][c] == 0) {
-                        TicTacToeAction action = new TicTacToeAction(r, c);
+                        Action action = new Action(r, c);
                         actions.add(action);
                     }
                 }
@@ -99,51 +116,51 @@ public class TicTacToe {
                 : 0;
         }
 
-        private byte updateWith(TicTacToeAction action) {
+        private byte updateWith(Action action) {
             byte prevAgent = (byte) (3 - agent);
             round++;
             board[action.row][action.col] = prevAgent;
             int dim = board.length;
 
-            int contigous = 0;
+            int contiguous = 0;
             for (int r = 0; r < dim; r++) {
                 if (board[r][action.col] != prevAgent) {
-                    contigous = 0;
+                    contiguous = 0;
                 } else {
-                    if (++contigous == needed)
+                    if (++contiguous == needed)
                         return prevAgent;
                 }
             }
 
-            contigous = 0;
+            contiguous = 0;
             for (int c = 0; c < dim; c++) {
                 if (board[action.row][c] != prevAgent) {
-                    contigous = 0;
+                    contiguous = 0;
                 } else {
-                    if (++contigous == needed)
+                    if (++contiguous == needed)
                         return prevAgent;
                 }
             }
 
             if (action.row == action.col) {
-                contigous = 0;
+                contiguous = 0;
                 for (int x = 0; x < dim; x++) {
                     if (board[x][x] != prevAgent) {
-                        contigous = 0;
+                        contiguous = 0;
                     } else {
-                        if (++contigous == needed)
+                        if (++contiguous == needed)
                             return prevAgent;
                     }
                 }
             }
 
             if (action.row == dim - 1 - action.col) {
-                contigous = 0;
+                contiguous = 0;
                 for (int x = 0; x < dim; x++) {
                     if (board[x][dim - 1 - x] != prevAgent) {
-                        contigous = 0;
+                        contiguous = 0;
                     } else {
-                        if (++contigous == needed)
+                        if (++contiguous == needed)
                             return prevAgent;
                     }
                 }
@@ -155,8 +172,14 @@ public class TicTacToe {
         }
 
         @Override
-        public State<TicTacToeAction> takeAction(TicTacToeAction action) {
+        public State<Action> takeAction(Action action) {
             return new TicTacToeState(this, action);
+        }
+
+        @Override
+        public void applyAction(Action action) {
+            agent = (byte) (3 - agent);
+            winner = updateWith(action);
         }
 
         @Override

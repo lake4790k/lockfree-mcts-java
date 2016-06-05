@@ -32,7 +32,8 @@ public class SelfPlay<Action, StateT extends State<Action>> {
                 ? mcts1
                 : mcts2;
 
-            state = (StateT) mcts.takeAction(state);
+            mcts.setRoot(state);
+            state = (StateT) mcts.takeAction();
         }
         return state.getWinner() != 0
             ? player

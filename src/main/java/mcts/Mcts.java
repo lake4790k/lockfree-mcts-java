@@ -10,14 +10,20 @@ public class Mcts<Action, StateT extends State<Action>> {
     private final long timePerActionMillis;
     private final int maxIterations;
 
+    private Node<Action, StateT> root;
+
     public Mcts(long timePerActionMillis, int maxIterations) {
         this.timePerActionMillis = timePerActionMillis;
         this.maxIterations = maxIterations;
     }
 
-    public State<Action> takeAction(StateT state) {
+    public void setRoot(StateT state) {
+        // TODO reuse previous tree
+        this.root = new Node<>(null, null, state);
+    }
+
+    public State<Action> takeAction() {
         long started = System.currentTimeMillis();
-        Node<Action, StateT> root = new Node<>(null, null, state);
         int i = 0;
         while (i++ < maxIterations && System.currentTimeMillis() - started < timePerActionMillis
             || !root.isExpanded()) {
@@ -26,7 +32,7 @@ public class Mcts<Action, StateT extends State<Action>> {
         }
         Node<Action, StateT> actionNode = root.childToExploit();
         Action action = actionNode.getAction();
-        return state.takeAction(action);
+        return root.getState().takeAction(action);
     }
 
     private void growTree(Node<Action, StateT> root) {
@@ -48,22 +54,17 @@ public class Mcts<Action, StateT extends State<Action>> {
 
     @SuppressWarnings("unchecked")
     private StateT simulate(Node<Action, StateT> node) {
-        StateT state = node.getState();
+        StateT state = (StateT) node.getState().copy();
         while (!state.isTerminal()) {
-            Action action = randomBiasedAction(state);
-            state = (StateT) state.takeAction(action);
+            Action action = randomAction(state);
+            state.applyAction(action);
         }
         return state;
     }
 
-    private Action randomBiasedAction(StateT state) {
+    private Action randomAction(StateT state) {
         List<Action> actions = state.getAvailableActions();
-        // for (int i = 0; i < actions.size(); i++) {
-        // ActionT action = actions.get(i);
-        // State<ActionT> next = state.takeAction(action);
-        // if (next.isTerminal())
-        // return action;
-        // }
+        // TODO select winner action?
         int randomIdx = random.nextInt(actions.size());
         return actions.get(randomIdx);
     }

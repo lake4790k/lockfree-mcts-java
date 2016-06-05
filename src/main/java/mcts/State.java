@@ -16,6 +16,10 @@ public interface State<Action> {
 
     State<Action> takeAction(Action action);
 
+    State<Action> copy();
+
+    void applyAction(Action action);
+
     int getWinner();
 
 }
