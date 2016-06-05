@@ -30,7 +30,7 @@ public class Mcts<Action, StateT extends State<Action>> {
         root = new Node<>(null, null, state);
     }
 
-    public State<Action> takeAction() {
+    public void think() {
         long started = System.currentTimeMillis();
         int i = 0;
         while (i++ < maxIterations && System.currentTimeMillis() - started < timePerActionMillis
@@ -38,6 +38,9 @@ public class Mcts<Action, StateT extends State<Action>> {
 
             growTree();
         }
+    }
+
+    public State<Action> takeAction() {
         Node<Action, StateT> actionNode = root.childToExploit();
         lastAction = actionNode.getAction();
         root = actionNode;

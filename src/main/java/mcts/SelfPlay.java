@@ -34,6 +34,7 @@ public class SelfPlay<Action, StateT extends State<Action>> {
                 : mcts2;
 
             mcts.setRoot(action, state);
+            mcts.think();
             state = (StateT) mcts.takeAction();
             action = mcts.getLastAction();
         }

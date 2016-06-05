@@ -2,21 +2,20 @@ package mcts;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
-import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.atomic.AtomicInteger;
 
 class Node<Action, StateT extends State<Action>> {
-    private static final Random random = ThreadLocalRandom.current();
     private static final double EXPLORATION_CONSTANT = Math.sqrt(2);
     private static final double NO_EXPLORATION = 0;
+
+    private final AtomicInteger untakenIndex = new AtomicInteger();
 
     private final List<Node<Action, StateT>> children;
     private final List<Action> untakenActions;
     private final StateT state;
     private final Action action;
-    private final boolean hasActions;
 
-    private Node<Action, StateT> parent;
+    private volatile Node<Action, StateT> parent;
     private int visits;
     private volatile double rewards;
 
@@ -26,7 +25,7 @@ class Node<Action, StateT extends State<Action>> {
         this.state = state;
         this.children = new ArrayList<>();
         this.untakenActions = state.getAvailableActions();
-        hasActions = !untakenActions.isEmpty();
+        this.untakenIndex.set(untakenActions.size() - 1);
     }
 
     Node<Action, StateT> findChildFor(Action action) {
@@ -50,18 +49,13 @@ class Node<Action, StateT extends State<Action>> {
         return state.isTerminal();
     }
 
-    boolean hasActions() {
-        return hasActions;
-    }
-
     boolean isExpanded() {
-        return untakenActions.isEmpty();
+        return untakenIndex.get() < 0;
     }
 
     @SuppressWarnings("unchecked")
     Node<Action, StateT> expand() {
-        int randomIdx = random.nextInt(untakenActions.size());
-        Action untakenAction = untakenActions.remove(randomIdx);
+        Action untakenAction = untakenActions.get(untakenIndex.getAndDecrement());
         StateT actionState = (StateT) state.takeAction(untakenAction);
         Node<Action, StateT> child = new Node<>(this, untakenAction, actionState);
         children.add(child);
@@ -77,7 +71,6 @@ class Node<Action, StateT extends State<Action>> {
     }
 
     void updateRewards(double reward) {
-        assert reward >= 0;
         visits++;
         this.rewards += reward;
     }
