@@ -14,10 +14,10 @@ public class Mcts<Action, StateT extends State<Action>> {
 
     private final long timePerActionMillis;
     private final int maxIterations;
+    private final int threads;
 
     private Node<Action, StateT> root;
     private Action lastAction;
-    private final int threads;
 
     public Mcts(int threads, long timePerActionMillis, int maxIterations) {
         this.threads = threads;
@@ -31,6 +31,10 @@ public class Mcts<Action, StateT extends State<Action>> {
     public void stop() {
         if (executor != null)
             executor.shutdown();
+    }
+
+    public Action getLastAction() {
+        return lastAction;
     }
 
     public void setRoot(Action action, StateT state) {
@@ -47,7 +51,7 @@ public class Mcts<Action, StateT extends State<Action>> {
 
     public void think() {
         if (threads == 1) {
-            think1();
+            doThink();
             return;
         }
 
@@ -55,7 +59,7 @@ public class Mcts<Action, StateT extends State<Action>> {
 
         for (int i = 0; i < threads; i++)
             tasks.add(() -> {
-                think1();
+                doThink();
                 return null;
             });
 
@@ -64,10 +68,9 @@ public class Mcts<Action, StateT extends State<Action>> {
         } catch (InterruptedException e) {
             throw new IllegalStateException(e);
         }
-
     }
 
-    public void think1() {
+    private void doThink() {
         long started = System.currentTimeMillis();
         int i = 0;
         Random random = ThreadLocalRandom.current();
@@ -127,10 +130,6 @@ public class Mcts<Action, StateT extends State<Action>> {
             node.updateRewards(reward);
             node = node.getParent();
         }
-    }
-
-    public Action getLastAction() {
-        return lastAction;
     }
 
 }

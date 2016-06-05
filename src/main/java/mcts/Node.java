@@ -100,19 +100,25 @@ class Node<Action, StateT extends State<Action>> {
 
     private Node<Action, StateT> getBestChild(double c) {
         assert isExpanded();
-        double bestValue = Double.NEGATIVE_INFINITY;
         Node<Action, StateT> best = null;
-        for (int i = 0; i < children.length(); i++) {
-            Node<Action, StateT> child = null;
-            while (child == null)
-                child = children.get(i);
+        while (best == null) {
+            double bestValue = Double.NEGATIVE_INFINITY;
+            for (int i = 0; i < children.length(); i++) {
+                // non spinlocking: seemed worse
+                // Node<Action, StateT> child = children.get(i);
+                // if (child == null || !child.isVisited())
+                // continue;
 
-            while (!child.isVisited()) {}
+                Node<Action, StateT> child = null;
+                while (child == null)
+                    child = children.get(i);
+                while (!child.isVisited()) {}
 
-            double chidrenValue = child.getUctValue(c);
-            if (chidrenValue > bestValue) {
-                best = child;
-                bestValue = chidrenValue;
+                double chidrenValue = child.getUctValue(c);
+                if (chidrenValue > bestValue) {
+                    best = child;
+                    bestValue = chidrenValue;
+                }
             }
         }
         return best;
