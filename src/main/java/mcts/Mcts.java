@@ -11,15 +11,23 @@ public class Mcts<Action, StateT extends State<Action>> {
     private final int maxIterations;
 
     private Node<Action, StateT> root;
+    private Action lastAction;
 
     public Mcts(long timePerActionMillis, int maxIterations) {
         this.timePerActionMillis = timePerActionMillis;
         this.maxIterations = maxIterations;
     }
 
-    public void setRoot(StateT state) {
-        // TODO reuse previous tree
-        this.root = new Node<>(null, null, state);
+    public void setRoot(Action action, StateT state) {
+        if (root != null) {
+            Node<Action, StateT> child = root.findChildFor(action);
+            if (child != null) {
+                root = child;
+                root.releaseParent();
+                return;
+            }
+        }
+        root = new Node<>(null, null, state);
     }
 
     public State<Action> takeAction() {
@@ -28,14 +36,15 @@ public class Mcts<Action, StateT extends State<Action>> {
         while (i++ < maxIterations && System.currentTimeMillis() - started < timePerActionMillis
             || !root.isExpanded()) {
 
-            growTree(root);
+            growTree();
         }
         Node<Action, StateT> actionNode = root.childToExploit();
-        Action action = actionNode.getAction();
-        return root.getState().takeAction(action);
+        lastAction = actionNode.getAction();
+        root = actionNode;
+        return actionNode.getState();
     }
 
-    private void growTree(Node<Action, StateT> root) {
+    private void growTree() {
         Node<Action, StateT> child = selectOrExpand(root);
         StateT terminalState = simulate(child);
         backPropagate(child, terminalState);
@@ -75,6 +84,10 @@ public class Mcts<Action, StateT extends State<Action>> {
             node.updateRewards(reward);
             node = node.getParent();
         }
+    }
+
+    public Action getLastAction() {
+        return lastAction;
     }
 
 }

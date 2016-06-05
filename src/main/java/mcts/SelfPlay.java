@@ -26,16 +26,19 @@ public class SelfPlay<Action, StateT extends State<Action>> {
     public int play() {
         int c = random.nextInt(2);
         int player = 0;
+        Action action = null;
         while (!state.isTerminal()) {
             player = 1 + c++ % 2;
             Mcts<Action, StateT> mcts = player == 1
                 ? mcts1
                 : mcts2;
 
-            mcts.setRoot(state);
+            mcts.setRoot(action, state);
             state = (StateT) mcts.takeAction();
+            action = mcts.getLastAction();
         }
-        return state.getWinner() != 0
+        boolean draw = state.getWinner() == 0;
+        return !draw
             ? player
             : 0;
     }

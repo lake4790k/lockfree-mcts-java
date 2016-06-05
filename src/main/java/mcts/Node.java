@@ -13,10 +13,10 @@ class Node<Action, StateT extends State<Action>> {
     private final List<Node<Action, StateT>> children;
     private final List<Action> untakenActions;
     private final StateT state;
-    private final Node<Action, StateT> parent;
     private final Action action;
     private final boolean hasActions;
 
+    private Node<Action, StateT> parent;
     private int visits;
     private volatile double rewards;
 
@@ -27,6 +27,19 @@ class Node<Action, StateT extends State<Action>> {
         this.children = new ArrayList<>();
         this.untakenActions = state.getAvailableActions();
         hasActions = !untakenActions.isEmpty();
+    }
+
+    Node<Action, StateT> findChildFor(Action action) {
+        for (int i = 0; i < children.size(); i++) {
+            Node<Action, StateT> child = children.get(i);
+            if (child.action.equals(action))
+                return child;
+        }
+        return null;
+    }
+
+    void releaseParent() {
+        parent = null;
     }
 
     Action getAction() {

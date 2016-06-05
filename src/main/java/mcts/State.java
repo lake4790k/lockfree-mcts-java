@@ -8,8 +8,6 @@ public interface State<Action> {
 
     List<Action> getAvailableActions();
 
-    int getAgent();
-
     int getPreviousAgent();
 
     double getRewardFor(int agent);
