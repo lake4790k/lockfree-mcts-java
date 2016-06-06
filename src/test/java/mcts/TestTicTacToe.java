@@ -7,15 +7,14 @@ import java.util.Arrays;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import mcts.TicTacToe.TicTacToeState;
-
 public class TestTicTacToe {
     private final int timePerActionSec1 = 10000;
     private final int timePerActionSec2 = 10000;
+    private final int threads2 = 1;
+
     private int maxIterations1 = 100;
     private int maxIterations2 = 100;
     private int threads1 = 1;
-    private final int threads2 = 1;
 
     private int dim = 3;
     private int needed = 3;
@@ -77,8 +76,8 @@ public class TestTicTacToe {
     private int[] testScores(int times) {
         int[] scores = new int[3];
         for (int i = 0; i < times; i++) {
-            TicTacToeState startState = TicTacToe.start(dim, needed);
-            SelfPlay<TicTacToe.Action, TicTacToeState> play = new SelfPlay<TicTacToe.Action, TicTacToeState>(
+            TicTacToe startState = TicTacToe.start(dim, needed);
+            SelfPlay<TicTacToe> play = new SelfPlay<>(
                 startState,
                 threads1,
                 threads2,

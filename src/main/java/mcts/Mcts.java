@@ -2,22 +2,21 @@ package mcts;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.Random;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadLocalRandom;
 
-public class Mcts<Action, StateT extends State<Action>> {
+public class Mcts<S extends State> {
     private final ExecutorService executor;
 
     private final long timePerActionMillis;
     private final int maxIterations;
     private final int threads;
 
-    private Node<Action, StateT> root;
-    private Action lastAction;
+    private Node<S> root;
+    private int lastAction;
 
     public Mcts(int threads, long timePerActionMillis, int maxIterations) {
         this.threads = threads;
@@ -33,20 +32,20 @@ public class Mcts<Action, StateT extends State<Action>> {
             executor.shutdown();
     }
 
-    public Action getLastAction() {
+    public int getLastAction() {
         return lastAction;
     }
 
-    public void setRoot(Action action, StateT state) {
+    public void setRoot(int action, S state) {
         if (root != null) {
-            Node<Action, StateT> child = root.findChildFor(action);
+            Node<S> child = root.findChildFor(action);
             if (child != null) {
                 root = child;
                 root.releaseParent();
                 return;
             }
         }
-        root = new Node<>(null, null, state);
+        root = new Node<>(null, -1, state);
     }
 
     public void think() {
@@ -81,24 +80,24 @@ public class Mcts<Action, StateT extends State<Action>> {
         }
     }
 
-    public State<Action> takeAction() {
-        Node<Action, StateT> actionNode = root.childToExploit();
+    public State takeAction() {
+        Node<S> actionNode = root.childToExploit();
         lastAction = actionNode.getAction();
         root = actionNode;
         return actionNode.getState();
     }
 
     private void growTree(Random random) {
-        Node<Action, StateT> child = selectOrExpand(root);
-        StateT terminalState = simulate(child, random);
+        Node<S> child = selectOrExpand(root);
+        S terminalState = simulate(child, random);
         backPropagate(child, terminalState);
     }
 
-    private Node<Action, StateT> selectOrExpand(Node<Action, StateT> root) {
-        Node<Action, StateT> node = root;
+    private Node<S> selectOrExpand(Node<S> root) {
+        Node<S> node = root;
         while (!node.isTerminal()) {
             if (!node.isExpanded()) {
-                Node<Action, StateT> expandedNode = node.expand();
+                Node<S> expandedNode = node.expand();
                 if (expandedNode != null)
                     return expandedNode;
             }
@@ -108,23 +107,18 @@ public class Mcts<Action, StateT extends State<Action>> {
     }
 
     @SuppressWarnings("unchecked")
-    private StateT simulate(Node<Action, StateT> node, Random random) {
-        StateT state = (StateT) node.getState().copy();
+    private S simulate(Node<S> node, Random random) {
+        S state = (S) node.getState().copy();
         while (!state.isTerminal()) {
-            Action action = randomAction(random, state);
+            short[] actions = state.getAvailableActions();
+            int randomIdx = random.nextInt(actions.length);
+            short action = actions[randomIdx];
             state.applyAction(action);
         }
         return state;
     }
 
-    private Action randomAction(Random random, StateT state) {
-        List<Action> actions = state.getAvailableActions();
-        // TODO select winner action?
-        int randomIdx = random.nextInt(actions.size());
-        return actions.get(randomIdx);
-    }
-
-    private void backPropagate(Node<Action, StateT> node, StateT terminalState) {
+    private void backPropagate(Node<S> node, S terminalState) {
         while (node != null) {
             double reward = terminalState.getRewardFor(node.getPreviousAgent());
             node.updateRewards(reward);

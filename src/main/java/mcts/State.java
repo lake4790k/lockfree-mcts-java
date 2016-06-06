@@ -1,22 +1,20 @@
 package mcts;
 
-import java.util.List;
-
-public interface State<Action> {
+public interface State {
 
     boolean isTerminal();
 
-    List<Action> getAvailableActions();
+    short[] getAvailableActions();
 
     int getPreviousAgent();
 
     double getRewardFor(int agent);
 
-    State<Action> takeAction(Action action);
+    State takeAction(short action);
 
-    State<Action> copy();
+    State copy();
 
-    void applyAction(Action action);
+    void applyAction(short action);
 
     int getWinner();
 

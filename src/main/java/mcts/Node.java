@@ -1,39 +1,38 @@
 package mcts;
 
-import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReferenceArray;
 
-class Node<Action, StateT extends State<Action>> {
+class Node<S extends State> {
     private static final double EXPLORATION_CONSTANT = Math.sqrt(2);
     private static final double NO_EXPLORATION = 0;
 
     private final AtomicInteger untakenIndex = new AtomicInteger();
     private final AtomicInteger visits = new AtomicInteger();
 
-    private final AtomicReferenceArray<Node<Action, StateT>> children;
-    private final List<Action> untakenActions;
-    private final StateT state;
-    private final Action action;
+    private final AtomicReferenceArray<Node<S>> children;
+    private final short[] untakenActions;
+    private final S state;
+    private final int action;
 
-    private volatile Node<Action, StateT> parent;
+    private volatile Node<S> parent;
     private volatile double rewards;
 
-    Node(Node<Action, StateT> parent, Action action, StateT state) {
+    Node(Node<S> parent, int action, S state) {
         this.parent = parent;
         this.action = action;
         this.state = state;
         this.untakenActions = state.getAvailableActions();
-        this.children = new AtomicReferenceArray<>(untakenActions.size());
-        this.untakenIndex.set(untakenActions.size() - 1);
+        this.children = new AtomicReferenceArray<>(untakenActions.length);
+        this.untakenIndex.set(untakenActions.length - 1);
     }
 
-    Node<Action, StateT> findChildFor(Action action) {
+    Node<S> findChildFor(int action) {
         for (int i = 0; i < children.length(); i++) {
-            Node<Action, StateT> child = children.get(i);
+            Node<S> child = children.get(i);
             if (child == null)
                 continue;
-            if (child.action.equals(action))
+            if (child.action == action)
                 return child;
         }
         return null;
@@ -43,7 +42,7 @@ class Node<Action, StateT extends State<Action>> {
         parent = null;
     }
 
-    Action getAction() {
+    int getAction() {
         return action;
     }
 
@@ -56,19 +55,19 @@ class Node<Action, StateT extends State<Action>> {
     }
 
     @SuppressWarnings("unchecked")
-    Node<Action, StateT> expand() {
+    Node<S> expand() {
         int untakenIdx = untakenIndex.getAndDecrement();
         if (untakenIdx < 0)
             return null;
 
-        Action untakenAction = untakenActions.get(untakenIdx);
-        StateT actionState = (StateT) state.takeAction(untakenAction);
-        Node<Action, StateT> child = new Node<>(this, untakenAction, actionState);
+        short untakenAction = untakenActions[untakenIdx];
+        S actionState = (S) state.takeAction(untakenAction);
+        Node<S> child = new Node<>(this, untakenAction, actionState);
         children.set(untakenIdx, child);
         return child;
     }
 
-    Node<Action, StateT> getParent() {
+    Node<S> getParent() {
         return parent;
     }
 
@@ -90,17 +89,17 @@ class Node<Action, StateT extends State<Action>> {
         return rewards / visits1 + c * Math.sqrt(Math.log(parent.visits.get()) / visits1);
     }
 
-    Node<Action, StateT> childToExploit() {
+    Node<S> childToExploit() {
         return getBestChild(NO_EXPLORATION);
     }
 
-    Node<Action, StateT> childToExplore() {
+    Node<S> childToExplore() {
         return getBestChild(EXPLORATION_CONSTANT);
     }
 
-    private Node<Action, StateT> getBestChild(double c) {
+    private Node<S> getBestChild(double c) {
         assert isExpanded();
-        Node<Action, StateT> best = null;
+        Node<S> best = null;
         while (best == null) {
             double bestValue = Double.NEGATIVE_INFINITY;
             for (int i = 0; i < children.length(); i++) {
@@ -109,7 +108,7 @@ class Node<Action, StateT extends State<Action>> {
                 // if (child == null || !child.isVisited())
                 // continue;
 
-                Node<Action, StateT> child = null;
+                Node<S> child = null;
                 while (child == null)
                     child = children.get(i);
                 while (!child.isVisited()) {}
@@ -124,7 +123,7 @@ class Node<Action, StateT extends State<Action>> {
         return best;
     }
 
-    StateT getState() {
+    S getState() {
         return state;
     }
 

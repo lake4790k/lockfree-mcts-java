@@ -2,16 +2,16 @@ package mcts;
 
 import java.util.Random;
 
-public class SelfPlay<Action, StateT extends State<Action>> {
+public class SelfPlay<S extends State> {
     private final Random random = new Random();
 
-    private final Mcts<Action, StateT> mcts1;
-    private final Mcts<Action, StateT> mcts2;
+    private final Mcts<S> mcts1;
+    private final Mcts<S> mcts2;
 
-    private StateT state;
+    private S state;
 
     public SelfPlay(
-        StateT state,
+        S state,
         int threads1,
         int threads2,
         int timePerActionSec1,
@@ -28,16 +28,16 @@ public class SelfPlay<Action, StateT extends State<Action>> {
     public int play() {
         int c = random.nextInt(2);
         int player = 0;
-        Action action = null;
+        int action = -1;
         while (!state.isTerminal()) {
             player = 1 + c++ % 2;
-            Mcts<Action, StateT> mcts = player == 1
+            Mcts<S> mcts = player == 1
                 ? mcts1
                 : mcts2;
 
             mcts.setRoot(action, state);
             mcts.think();
-            state = (StateT) mcts.takeAction();
+            state = (S) mcts.takeAction();
             action = mcts.getLastAction();
         }
         boolean draw = state.getWinner() == 0;
