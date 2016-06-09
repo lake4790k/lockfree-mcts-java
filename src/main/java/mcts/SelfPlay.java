@@ -46,6 +46,12 @@ public class SelfPlay<S extends State> {
             : 0;
     }
 
+    public int getTotalIterations(int i) {
+        return i == 1
+            ? mcts1.getTotalIterations()
+            : mcts2.getTotalIterations();
+    }
+
     public void stop() {
         mcts1.stop();
         mcts2.stop();

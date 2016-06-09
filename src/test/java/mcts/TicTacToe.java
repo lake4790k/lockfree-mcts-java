@@ -21,6 +21,7 @@ public class TicTacToe implements State {
     private int round;
 
     public TicTacToe(byte dims, byte needed) {
+        assert dims >= needed;
         this.needed = needed;
         this.agent = 1;
         this.board = new byte[dims][dims];

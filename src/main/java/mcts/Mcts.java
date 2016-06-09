@@ -7,10 +7,14 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class Mcts<S extends State> {
-    private final ExecutorService executor;
+    private static final int NO_ACTION = -1;
 
+    private final AtomicInteger totalIterations = new AtomicInteger();
+
+    private final ExecutorService executor;
     private final long timePerActionMillis;
     private final int maxIterations;
     private final int threads;
@@ -36,6 +40,10 @@ public class Mcts<S extends State> {
         return lastAction;
     }
 
+    public int getTotalIterations() {
+        return totalIterations.get();
+    }
+
     public void setRoot(int action, S state) {
         if (root != null) {
             Node<S> child = root.findChildFor(action);
@@ -45,7 +53,7 @@ public class Mcts<S extends State> {
                 return;
             }
         }
-        root = new Node<>(null, -1, state);
+        root = new Node<>(null, NO_ACTION, state);
     }
 
     public void think() {
@@ -77,6 +85,7 @@ public class Mcts<S extends State> {
             || !root.isExpanded()) {
 
             growTree(random);
+            totalIterations.incrementAndGet();
         }
     }
 
