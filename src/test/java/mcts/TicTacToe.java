@@ -13,10 +13,11 @@ public class TicTacToe implements State {
     private static final byte DRAW = 0;
     private static final byte NOT_OVER_YET = (byte) 99;
 
-    private byte agent;
-    private final byte[][] board;
+    private final byte[] board;
     private final byte needed;
+    private final byte dim;
 
+    private byte agent;
     private byte winner;
     private int round;
 
@@ -24,31 +25,26 @@ public class TicTacToe implements State {
         assert dims >= needed;
         this.needed = needed;
         this.agent = 1;
-        this.board = new byte[dims][dims];
+        this.board = new byte[dims * dims];
+        this.dim = dims;
         this.winner = NOT_OVER_YET;
     }
 
     public TicTacToe(TicTacToe o) {
         agent = o.agent;
-        int dim = o.board.length;
-        board = new byte[dim][dim];
-        for (int r = 0; r < dim; r++) {
-            board[r] = o.board[r].clone();
-        }
+        board = o.board.clone();
         needed = o.needed;
         round = o.round;
         winner = o.winner;
+        dim = o.dim;
     }
 
     public TicTacToe(TicTacToe o, short action) {
         agent = (byte) (3 - o.agent);
-        int dim = o.board.length;
-        board = new byte[dim][dim];
-        for (int r = 0; r < dim; r++) {
-            board[r] = o.board[r].clone();
-        }
+        board = o.board.clone();
         needed = o.needed;
         round = o.round;
+        dim = o.dim;
         winner = updateWith(action);
     }
 
@@ -64,15 +60,12 @@ public class TicTacToe implements State {
 
     @Override
     public short[] getAvailableActions() {
-        int dim = board.length;
         int remaining = dim * dim - round;
         short[] actions = new short[remaining];
         int idx = 0;
-        for (byte r = 0; r < dim; r++) {
-            for (byte c = 0; c < dim; c++) {
-                if (board[r][c] == 0) {
-                    actions[idx++] = (short) (r * dim + c);
-                }
+        for (byte i = 0; i < board.length; i++) {
+            if (board[i] == 0) {
+                actions[idx++] = i;
             }
         }
         assert idx == remaining;
@@ -95,17 +88,21 @@ public class TicTacToe implements State {
             : 0;
     }
 
+    private byte at(int row, int col) {
+        int idx = row * dim + col;
+        return board[idx];
+    }
+
     private byte updateWith(short action) {
         byte prevAgent = (byte) (3 - agent);
-        int dim = board.length;
         int row = action / dim;
         int col = action % dim;
         round++;
-        board[row][col] = prevAgent;
+        board[action] = prevAgent;
 
         int contiguous = 0;
         for (int r = 0; r < dim; r++) {
-            if (board[r][col] != prevAgent) {
+            if (at(r, col) != prevAgent) {
                 contiguous = 0;
             } else {
                 if (++contiguous == needed)
@@ -115,7 +112,7 @@ public class TicTacToe implements State {
 
         contiguous = 0;
         for (int c = 0; c < dim; c++) {
-            if (board[row][c] != prevAgent) {
+            if (at(row, c) != prevAgent) {
                 contiguous = 0;
             } else {
                 if (++contiguous == needed)
@@ -126,7 +123,7 @@ public class TicTacToe implements State {
         if (row == col) {
             contiguous = 0;
             for (int x = 0; x < dim; x++) {
-                if (board[x][x] != prevAgent) {
+                if (at(x, x) != prevAgent) {
                     contiguous = 0;
                 } else {
                     if (++contiguous == needed)
@@ -138,7 +135,7 @@ public class TicTacToe implements State {
         if (row == dim - 1 - col) {
             contiguous = 0;
             for (int x = 0; x < dim; x++) {
-                if (board[x][dim - 1 - x] != prevAgent) {
+                if (at(x, dim - 1 - x) != prevAgent) {
                     contiguous = 0;
                 } else {
                     if (++contiguous == needed)
@@ -173,7 +170,7 @@ public class TicTacToe implements State {
         StringBuffer b = new StringBuffer("State=\n");
         for (int r = 0; r < board.length; r++) {
             for (int c = 0; c < board.length; c++) {
-                switch (board[r][c]) {
+                switch (at(r, c)) {
                     case 0:
                         b.append(".");
                         break;

@@ -97,12 +97,12 @@ public class Mcts<S extends State> {
     }
 
     private void growTree(Random random) {
-        Node<S> child = selectOrExpand(root);
+        Node<S> child = selectOrExpand();
         S terminalState = simulate(child, random);
         backPropagate(child, terminalState);
     }
 
-    private Node<S> selectOrExpand(Node<S> root) {
+    private Node<S> selectOrExpand() {
         Node<S> node = root;
         while (!node.isTerminal()) {
             if (!node.isExpanded()) {
