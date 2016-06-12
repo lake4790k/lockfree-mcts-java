@@ -40,6 +40,7 @@ public class SelfPlay<S extends State> {
             state = (S) mcts.takeAction();
             action = mcts.getLastAction();
         }
+        // System.out.println(state);
         boolean draw = state.getWinner() == 0;
         return !draw
             ? player

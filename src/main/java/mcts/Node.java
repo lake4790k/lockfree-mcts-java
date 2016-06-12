@@ -113,10 +113,10 @@ class Node<S extends State> {
                     child = children.get(i);
                 while (!child.isVisited()) {}
 
-                double chidrenValue = child.getUctValue(c);
-                if (chidrenValue > bestValue) {
+                double childrenValue = child.getUctValue(c);
+                if (childrenValue > bestValue) {
                     best = child;
-                    bestValue = chidrenValue;
+                    bestValue = childrenValue;
                 }
             }
         }

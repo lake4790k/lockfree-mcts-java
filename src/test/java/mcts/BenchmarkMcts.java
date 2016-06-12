@@ -4,11 +4,11 @@ import java.util.Arrays;
 
 public class BenchmarkMcts {
     private final int numCpu = Runtime.getRuntime().availableProcessors();
-    private final int times = 200;
-    private final int maxIterations2 = 500;
-    private final int timePerActionSec = 999;
+    private final int times = 400;
+    private final int maxIterations2 = 300;
+    private final int timePerActionSec = 999000;
     private final int dim = 5;
-    private final int needed = 4;
+    private final int needed = 3;
 
     private void run() {
         int t = 1;

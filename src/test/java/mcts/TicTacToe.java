@@ -168,8 +168,8 @@ public class TicTacToe implements State {
     @Override
     public String toString() {
         StringBuffer b = new StringBuffer("State=\n");
-        for (int r = 0; r < board.length; r++) {
-            for (int c = 0; c < board.length; c++) {
+        for (int r = 0; r < dim; r++) {
+            for (int c = 0; c < dim; c++) {
                 switch (at(r, c)) {
                     case 0:
                         b.append(".");
