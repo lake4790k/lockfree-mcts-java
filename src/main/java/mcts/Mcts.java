@@ -5,7 +5,6 @@ import java.util.Collection;
 import java.util.Random;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -22,18 +21,15 @@ public class Mcts<S extends State> {
     private Node<S> root;
     private int lastAction;
 
-    public Mcts(int threads, long timePerActionMillis, int maxIterations) {
+    public Mcts(
+        ExecutorService executor,
+        int threads,
+        long timePerActionMillis,
+        int maxIterations) {
+        this.executor = executor;
         this.threads = threads;
         this.timePerActionMillis = timePerActionMillis;
         this.maxIterations = maxIterations;
-        executor = threads > 1
-            ? Executors.newFixedThreadPool(threads)
-            : null;
-    }
-
-    public void stop() {
-        if (executor != null)
-            executor.shutdown();
     }
 
     public int getLastAction() {

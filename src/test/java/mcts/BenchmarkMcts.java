@@ -1,6 +1,8 @@
 package mcts;
 
 import java.util.Arrays;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class BenchmarkMcts {
     private final int numCpu = Runtime.getRuntime().availableProcessors();
@@ -41,12 +43,21 @@ public class BenchmarkMcts {
     }
 
     private int[] testScores(int threads1, int maxIterations1) {
-        int[] scores = new int[3];
         int threads2 = 1;
+        ExecutorService executor1 = threads1 > 1
+            ? Executors.newFixedThreadPool(threads1)
+            : null;
+        ExecutorService executor2 = threads2 > 1
+            ? Executors.newFixedThreadPool(threads2)
+            : null;
+
+        int[] scores = new int[3];
         for (int i = 0; i < times; i++) {
             TicTacToe startState = TicTacToe.start(dim, needed);
             SelfPlay<TicTacToe> play = new SelfPlay<>(
                 startState,
+                executor1,
+                executor2,
                 threads1,
                 threads2,
                 timePerActionSec,
@@ -57,8 +68,13 @@ public class BenchmarkMcts {
             int winner = play.play();
 
             scores[winner]++;
-            play.stop();
         }
+
+        if (executor1 != null)
+            executor1.shutdown();
+        if (executor2 != null)
+            executor2.shutdown();
+
         return scores;
     }
 

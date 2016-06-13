@@ -1,6 +1,7 @@
 package mcts;
 
 import java.util.Random;
+import java.util.concurrent.ExecutorService;
 
 public class SelfPlay<S extends State> {
     private final Random random = new Random();
@@ -12,6 +13,8 @@ public class SelfPlay<S extends State> {
 
     public SelfPlay(
         S state,
+        ExecutorService executor1,
+        ExecutorService executor2,
         int threads1,
         int threads2,
         int timePerActionSec1,
@@ -20,8 +23,8 @@ public class SelfPlay<S extends State> {
         int maxIterations2) {
 
         this.state = state;
-        mcts1 = new Mcts<>(threads1, timePerActionSec1, maxIterations1);
-        mcts2 = new Mcts<>(threads2, timePerActionSec2, maxIterations2);
+        mcts1 = new Mcts<>(executor1, threads1, timePerActionSec1, maxIterations1);
+        mcts2 = new Mcts<>(executor2, threads2, timePerActionSec2, maxIterations2);
     }
 
     @SuppressWarnings("unchecked")
@@ -51,11 +54,6 @@ public class SelfPlay<S extends State> {
         return i == 1
             ? mcts1.getTotalIterations()
             : mcts2.getTotalIterations();
-    }
-
-    public void stop() {
-        mcts1.stop();
-        mcts2.stop();
     }
 
 }

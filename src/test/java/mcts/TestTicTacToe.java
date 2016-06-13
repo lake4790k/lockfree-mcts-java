@@ -3,6 +3,8 @@ package mcts;
 import static org.junit.Assert.*;
 
 import java.util.Arrays;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.junit.Ignore;
 import org.junit.Test;
@@ -75,10 +77,21 @@ public class TestTicTacToe {
 
     private int[] testScores(int times) {
         int[] scores = new int[3];
+
+        ExecutorService executor1 = threads1 > 1
+            ? Executors.newFixedThreadPool(threads1)
+            : null;
+
+        ExecutorService executor2 = threads2 > 1
+            ? Executors.newFixedThreadPool(threads2)
+            : null;
+
         for (int i = 0; i < times; i++) {
             TicTacToe startState = TicTacToe.start(dim, needed);
             SelfPlay<TicTacToe> play = new SelfPlay<>(
                 startState,
+                executor1,
+                executor2,
                 threads1,
                 threads2,
                 timePerActionSec1,
@@ -89,9 +102,14 @@ public class TestTicTacToe {
             int winner = play.play();
 
             scores[winner]++;
-            play.stop();
             // System.out.println(Arrays.toString(scores));
         }
+
+        if (executor1 != null)
+            executor1.shutdown();
+        if (executor2 != null)
+            executor2.shutdown();
+
         return scores;
     }
 
