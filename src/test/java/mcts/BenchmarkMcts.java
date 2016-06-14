@@ -108,13 +108,13 @@ public class BenchmarkMcts {
     }
 
     public static void main(String[] args) {
-        if (args.length != 5) {
+        if (args.length != 4) {
             new BenchmarkMcts(5, 3, 100, 100).run();
         }
-        int dims = Integer.parseInt(args[1]);
-        int needed = Integer.parseInt(args[2]);
-        int times = Integer.parseInt(args[3]);
-        int iterations = Integer.parseInt(args[4]);
+        int dims = Integer.parseInt(args[0]);
+        int needed = Integer.parseInt(args[1]);
+        int times = Integer.parseInt(args[2]);
+        int iterations = Integer.parseInt(args[3]);
         new BenchmarkMcts(dims, needed, times, iterations).run();
     }
 
