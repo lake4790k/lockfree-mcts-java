@@ -5,7 +5,11 @@ General lockfree Monte Carlo Tree Search implementation in Java
 
 ### Results
 
-Work in progress
+Result from the included n x k TicTacToe game
+
+![](benchmark.png)
+
+```java -cp classes:test-classes mcts.BenchmarkMcts 8 6 200 400```
 
 ### References
 
