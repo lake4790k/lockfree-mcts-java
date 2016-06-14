@@ -6,12 +6,21 @@ import java.util.concurrent.Executors;
 
 public class BenchmarkMcts {
     private final int numCpu = Runtime.getRuntime().availableProcessors();
-    private final int times = 400;
-    private final int maxIterations2 = 300;
     private final int timePerActionSec = 999000;
-    private final int dim = 5;
-    private final int needed = 3;
+
+    private final int dim;
+    private final int needed;
+    private final int times;
+    private final int maxIterations2;
+
     private long took;
+
+    public BenchmarkMcts(int dim, int needed, int times, int iterations) {
+        this.dim = dim;
+        this.needed = needed;
+        this.times = times;
+        maxIterations2 = iterations;
+    }
 
     private void run() {
         int t = 1;
@@ -99,7 +108,14 @@ public class BenchmarkMcts {
     }
 
     public static void main(String[] args) {
-        new BenchmarkMcts().run();
+        if (args.length != 5) {
+            new BenchmarkMcts(5, 3, 100, 100).run();
+        }
+        int dims = Integer.parseInt(args[1]);
+        int needed = Integer.parseInt(args[2]);
+        int times = Integer.parseInt(args[3]);
+        int iterations = Integer.parseInt(args[4]);
+        new BenchmarkMcts(dims, needed, times, iterations).run();
     }
 
 }
