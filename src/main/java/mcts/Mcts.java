@@ -89,6 +89,7 @@ public class Mcts<S extends State> {
         Node<S> actionNode = root.childToExploit();
         lastAction = actionNode.getAction();
         root = actionNode;
+        root.releaseParent();
         return actionNode.getState();
     }
 
