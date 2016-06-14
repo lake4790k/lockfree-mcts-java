@@ -5,7 +5,7 @@ General lockfree Monte Carlo Tree Search implementation in Java
 
 ### Results
 
-Result from the included n x k TicTacToe game
+Result from the included n x k TicTacToe game on an `i7 5820k`
 
 ![](benchmark.png)
 
