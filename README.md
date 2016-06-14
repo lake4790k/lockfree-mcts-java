@@ -1,6 +1,6 @@
-[![Build Status](https://travis-ci.org/lake4790k/lockfree-mcts-java.svg?branch=master)](https://travis-ci.org/lake4790k/lockfree-mcts-java)
 
-# lockfree-mcts-java
+
+# lockfree-mcts-java [![Build Status](https://travis-ci.org/lake4790k/lockfree-mcts-java.svg?branch=master)](https://travis-ci.org/lake4790k/lockfree-mcts-java)
 General lockfree Monte Carlo Tree Search implementation in Java
 
 ### Results
